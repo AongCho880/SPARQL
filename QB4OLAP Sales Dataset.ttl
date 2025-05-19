@@ -1,0 +1,300 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix qb:   <http://purl.org/linked-data/cube#> .
+@prefix qb4o: <http://purl.org/qb4olap/cubes#> .
+@prefix ex:   <http://example.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+### --------------------------------
+### Data Structure Definition
+### --------------------------------
+
+ex:SalesDataStructure a qb:DataStructureDefinition ;
+    rdfs:label "Sales Data Structure"@en ;
+    rdfs:comment "Structure for sales data with time, geography, and product dimensions."@en ;
+    qb:component [
+        qb4o:dimension ex:timeDim ;
+        qb4o:hasHierarchy ex:timeHierarchy ;
+        qb:order 1
+    ] ;
+    qb:component [
+        qb4o:dimension ex:geoDim ;
+        qb4o:hasHierarchy ex:geoHierarchy ;
+        qb:order 2
+    ] ;
+    qb:component [
+        qb4o:dimension ex:productDim ;
+        qb4o:hasHierarchy ex:productHierarchy ;
+        qb:order 3
+    ] ;
+    qb:component [
+        qb:measure ex:salesAmount ;
+        qb4o:aggregateFunction qb4o:Sum
+    ] ;
+    qb:component [
+        qb:measure ex:quantitySold ;
+        qb4o:aggregateFunction qb4o:Sum
+    ] .
+
+### --------------------------------
+### Dimensions
+### --------------------------------
+
+ex:timeDim a qb:DimensionProperty ;
+    rdfs:label "Time Dimension"@en ;
+    rdfs:comment "Represents the time period of sales."@en ;
+    qb4o:hasHierarchy ex:timeHierarchy .
+
+ex:geoDim a qb:DimensionProperty ;
+    rdfs:label "Geography Dimension"@en ;
+    rdfs:comment "Represents the geographical location of sales."@en ;
+    qb4o:hasHierarchy ex:geoHierarchy .
+
+ex:productDim a qb:DimensionProperty ;
+    rdfs:label "Product Dimension"@en ;
+    rdfs:comment "Represents the product sold."@en ;
+    qb4o:hasHierarchy ex:productHierarchy .
+
+### --------------------------------
+### Measures
+### --------------------------------
+
+ex:salesAmount a qb:MeasureProperty ;
+    rdfs:label "Sales Amount"@en ;
+    rdfs:comment "Total sales amount in USD."@en ;
+    rdfs:range xsd:decimal ;
+    qb4o:aggregateFunction qb4o:Sum .
+
+ex:quantitySold a qb:MeasureProperty ;
+    rdfs:label "Quantity Sold"@en ;
+    rdfs:comment "Number of units sold."@en ;
+    rdfs:range xsd:integer ;
+    qb4o:aggregateFunction qb4o:Sum .
+
+### --------------------------------
+### Time Hierarchy
+### --------------------------------
+
+ex:timeHierarchy a qb4o:Hierarchy ;
+    rdfs:label "Time Hierarchy"@en ;
+    qb4o:hasLevel ex:yearLevel ;
+    qb4o:hasLevel ex:quarterLevel ;
+    qb4o:hasLevel ex:monthLevel .
+
+ex:yearLevel a qb4o:LevelProperty ;
+    rdfs:label "Year Level"@en ;
+    qb4o:inDimension ex:timeDim ;
+    qb4o:hasAttribute ex:yearName .
+
+ex:quarterLevel a qb4o:LevelProperty ;
+    rdfs:label "Quarter Level"@en ;
+    qb4o:inDimension ex:timeDim ;
+    qb4o:hasAttribute ex:quarterName .
+
+ex:monthLevel a qb4o:LevelProperty ;
+    rdfs:label "Month Level"@en ;
+    qb4o:inDimension ex:timeDim ;
+    qb4o:hasAttribute ex:monthName .
+
+ex:yearName a qb4o:LevelAttribute ;
+    rdfs:label "Year Name"@en ;
+    rdfs:range xsd:gYear .
+
+ex:quarterName a qb4o:LevelAttribute ;
+    rdfs:label "Quarter Name"@en ;
+    rdfs:range xsd:string .
+
+ex:monthName a qb4o:LevelAttribute ;
+    rdfs:label "Month Name"@en ;
+    rdfs:range xsd:string .
+
+# Hierarchy steps
+ex:quarterToYear a qb4o:HierarchyStep ;
+    qb4o:inHierarchy ex:timeHierarchy ;
+    qb4o:childLevel ex:quarterLevel ;
+    qb4o:parentLevel ex:yearLevel ;
+    qb4o:cardinality qb4o:ManyToOne ;
+    qb4o:rollup ex:quarterToYearRollup .
+
+ex:monthToQuarter a qb4o:HierarchyStep ;
+    qb4o:inHierarchy ex:timeHierarchy ;
+    qb4o:childLevel ex:monthLevel ;
+    qb4o:parentLevel ex:quarterLevel ;
+    qb4o:cardinality qb4o:ManyToOne ;
+    qb4o:rollup ex:monthToQuarterRollup .
+
+ex:quarterToYearRollup a qb4o:RollupProperty ;
+    rdfs:label "Quarter to Year Rollup"@en .
+
+ex:monthToQuarterRollup a qb4o:RollupProperty ;
+    rdfs:label "Month to Quarter Rollup"@en .
+
+### --------------------------------
+### Geography Hierarchy
+### --------------------------------
+
+ex:geoHierarchy a qb4o:Hierarchy ;
+    rdfs:label "Geography Hierarchy"@en ;
+    qb4o:hasLevel ex:countryLevel ;
+    qb4o:hasLevel ex:cityLevel .
+
+ex:countryLevel a qb4o:LevelProperty ;
+    rdfs:label "Country Level"@en ;
+    qb4o:inDimension ex:geoDim ;
+    qb4o:hasAttribute ex:countryName .
+
+ex:cityLevel a qb4o:LevelProperty ;
+    rdfs:label "City Level"@en ;
+    qb4o:inDimension ex:geoDim ;
+    qb4o:hasAttribute ex:cityName .
+
+ex:countryName a qb4o:LevelAttribute ;
+    rdfs:label "Country Name"@en ;
+    rdfs:range xsd:string .
+
+ex:cityName a qb4o:LevelAttribute ;
+    rdfs:label "City Name"@en ;
+    rdfs:range xsd:string .
+
+# Hierarchy step
+ex:cityToCountry a qb4o:HierarchyStep ;
+    qb4o:inHierarchy ex:geoHierarchy ;
+    qb4o:childLevel ex:cityLevel ;
+    qb4o:parentLevel ex:countryLevel ;
+    qb4o:cardinality qb4o:ManyToOne ;
+    qb4o:rollup ex:cityToCountryRollup .
+
+ex:cityToCountryRollup a qb4o:RollupProperty ;
+    rdfs:label "City to Country Rollup"@en .
+
+### --------------------------------
+### Product Hierarchy
+### --------------------------------
+
+ex:productHierarchy a qb4o:Hierarchy ;
+    rdfs:label "Product Hierarchy"@en ;
+    qb4o:hasLevel ex:categoryLevel ;
+    qb4o:hasLevel ex:productLevel .
+
+ex:categoryLevel a qb4o:LevelProperty ;
+    rdfs:label "Category Level"@en ;
+    qb4o:inDimension ex:productDim ;
+    qb4o:hasAttribute ex:categoryName .
+
+ex:productLevel a qb4o:LevelProperty ;
+    rdfs:label "Product Level"@en ;
+    qb4o:inDimension ex:productDim ;
+    qb4o:hasAttribute ex:productName .
+
+ex:categoryName a qb4o:LevelAttribute ;
+    rdfs:label "Category Name"@en ;
+    rdfs:range xsd:string .
+
+ex:productName a qb4o:LevelAttribute ;
+    rdfs:label "Product Name"@en ;
+    rdfs:range xsd:string .
+
+# Hierarchy step
+ex:productToCategory a qb4o:HierarchyStep ;
+    qb4o:inHierarchy ex:productHierarchy ;
+    qb4o:childLevel ex:productLevel ;
+    qb4o:parentLevel ex:categoryLevel ;
+    qb4o:cardinality qb4o:ManyToOne ;
+    qb4o:rollup ex:productToCategoryRollup .
+
+ex:productToCategoryRollup a qb4o:RollupProperty ;
+    rdfs:label "Product to Category Rollup"@en .
+
+### --------------------------------
+### Level Members (SKOS Concepts)
+### --------------------------------
+
+# Time members
+ex:year2023 a skos:Concept ;
+    qb4o:inLevel ex:yearLevel ;
+    ex:yearName "2023"^^xsd:gYear ;
+    skos:prefLabel "2023"@en .
+
+ex:q1_2023 a skos:Concept ;
+    qb4o:inLevel ex:quarterLevel ;
+    ex:quarterName "Q1-2023"@en ;
+    skos:prefLabel "Q1 2023"@en ;
+    ex:quarterToYearRollup ex:year2023 .
+
+ex:jan2023 a skos:Concept ;
+    qb4o:inLevel ex:monthLevel ;
+    ex:monthName "January 2023"@en ;
+    skos:prefLabel "Jan 2023"@en ;
+    ex:monthToQuarterRollup ex:q1_2023 .
+
+# Geography members
+ex:bangladesh a skos:Concept ;
+    qb4o:inLevel ex:countryLevel ;
+    ex:countryName "Bangladesh"@en ;
+    skos:prefLabel "Bangladesh"@en .
+
+ex:dhaka a skos:Concept ;
+    qb4o:inLevel ex:cityLevel ;
+    ex:cityName "Dhaka"@en ;
+    skos:prefLabel "Dhaka"@en ;
+    ex:cityToCountryRollup ex:bangladesh .
+
+ex:chittagong a skos:Concept ;
+    qb4o:inLevel ex:cityLevel ;
+    ex:cityName "Chittagong"@en ;
+    skos:prefLabel "Chittagong"@en ;
+    ex:cityToCountryRollup ex:bangladesh .
+
+# Product members
+ex:electronics a skos:Concept ;
+    qb4o:inLevel ex:categoryLevel ;
+    ex:categoryName "Electronics"@en ;
+    skos:prefLabel "Electronics"@en .
+
+ex:smartphone a skos:Concept ;
+    qb4o:inLevel ex:productLevel ;
+    ex:productName "Smartphone"@en ;
+    skos:prefLabel "Smartphone"@en ;
+    ex:productToCategoryRollup ex:electronics .
+
+### --------------------------------
+### Dataset
+### --------------------------------
+
+ex:SalesData a qb:DataSet ;
+    rdfs:label "Sales Dataset"@en ;
+    qb:structure ex:SalesDataStructure ;
+    qb4o:publisher ex:RetailCorp .
+
+ex:RetailCorp a foaf:Organization ;
+    foaf:name "Retail Corporation"@en ;
+    foaf:homepage <http://retailcorp.example.org> .
+
+### --------------------------------
+### Observations
+### --------------------------------
+
+ex:obs1 a qb:Observation ;
+    qb:dataSet ex:SalesData ;
+    ex:timeDim ex:jan2023 ;
+    ex:geoDim ex:dhaka ;
+    ex:productDim ex:smartphone ;
+    ex:salesAmount 50000.00 ;
+    ex:quantitySold 100 .
+
+ex:obs2 a qb:Observation ;
+    qb:dataSet ex:SalesData ;
+    ex:timeDim ex:jan2023 ;
+    ex:geoDim ex:chittagong ;
+    ex:productDim ex:smartphone ;
+    ex:salesAmount 30000.00 ;
+    ex:quantitySold 60 .
+
+ex:obs3 a qb:Observation ;
+    qb:dataSet ex:SalesData ;
+    ex:timeDim ex:q1_2023 ;
+    ex:geoDim ex:dhaka ;
+    ex:productDim ex:electronics ;
+    ex:salesAmount 120000.00 ;
+    ex:quantitySold 250 .

@@ -1,0 +1,211 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dbo:  <http://dbpedia.org/ontology/> .
+@prefix qb:   <http://purl.org/linked-data/cube#> .
+@prefix ex:   <http://example.org/> .
+
+### ----------------------------
+### Custom Property Definitions
+### ----------------------------
+
+# Existing properties
+ex:hasOccupation a rdf:Property ;
+    rdfs:domain foaf:Person ;
+    rdfs:range xsd:string ;
+    rdfs:label "has occupation"@en ;
+    rdfs:comment "Indicates the occupation or job title of a person."@en .
+
+ex:worksAt a rdf:Property ;
+    rdfs:domain foaf:Person ;
+    rdfs:range foaf:Organization ;
+    rdfs:label "works at"@en ;
+    rdfs:comment "Relates a person to their workplace organization."@en .
+
+# New properties
+ex:hasSkill a rdf:Property ;
+    rdfs:domain foaf:Person ;
+    rdfs:range xsd:string ;
+    rdfs:label "has skill"@en ;
+    rdfs:comment "Indicates a specific skill or expertise of a person."@en .
+
+ex:hasPublication a rdf:Property ;
+    rdfs:domain foaf:Person ;
+    rdfs:range ex:Publication ;
+    rdfs:label "has publication"@en ;
+    rdfs:comment "Relates a person to a publication they authored."@en .
+
+ex:contributesTo a rdf:Property ;
+    rdfs:domain foaf:Person ;
+    rdfs:range ex:Project ;
+    rdfs:label "contributes to"@en ;
+    rdfs:comment "Relates a person to a project they work on."@en .
+
+### ----------------------------
+### Classes
+### ----------------------------
+
+ex:Researcher a rdfs:Class ;
+    rdfs:subClassOf foaf:Person ;
+    rdfs:label "Researcher"@en .
+
+# New classes
+ex:Publication a rdfs:Class ;
+    rdfs:label "Publication"@en ;
+    rdfs:comment "A published work, such as a research paper or article."@en .
+
+ex:Project a rdfs:Class ;
+    rdfs:label "Project"@en ;
+    rdfs:comment "A collaborative or individual project or initiative."@en .
+
+### ----------------------------
+### People
+### ----------------------------
+
+ex:Alice a foaf:Person , ex:Researcher ;
+    foaf:name "Alice Johnson"@en ;
+    foaf:age "28"^^xsd:integer ;
+    foaf:mbox <mailto:alice@example.org> ;
+    foaf:homepage <http://alice.example.org> ;
+    foaf:knows ex:Bob , ex:Carol ;
+    rdfs:seeAlso <http://dbpedia.org/resource/Alice> ;
+    dbo:birthPlace ex:Chittagong ;
+    dbo:birthDate "1997-04-15"^^xsd:date ;
+    ex:hasOccupation "Software Engineer" ;
+    ex:worksAt ex:DataPublisher1 ;
+    qb:publisher ex:DataPublisher1 ;
+    ex:hasSkill "Python" ;
+    ex:hasSkill "RDF" ;
+    ex:hasPublication ex:Paper1 .
+
+ex:Bob a foaf:Person ;
+    foaf:name "Bob Smith" ;
+    foaf:age "30"^^xsd:integer ;
+    foaf:mbox <mailto:bob@example.org> ;
+    ex:hasOccupation "Data Analyst" ;
+    ex:worksAt ex:DataPublisher1 ;
+    dbo:birthPlace ex:Dhaka ;
+    rdfs:label "Bob from Dhaka"@en ;
+    ex:contributesTo ex:DataAnalysisProject1 .
+
+# New person
+ex:Carol a foaf:Person , ex:Researcher ;
+    foaf:name "Carol Lee"@en ;
+    foaf:age "26"^^xsd:integer ;
+    foaf:mbox <mailto:carol@example.org> ;
+    foaf:homepage <http://carol.example.org> ;
+    foaf:knows ex:Alice ;
+    dbo:birthPlace ex:Dhaka ;
+    dbo:birthDate "1999-08-22"^^xsd:date ;
+    ex:hasOccupation "Machine Learning Engineer" ;
+    ex:worksAt ex:DataPublisher1 ;
+    ex:hasSkill "TensorFlow" ;
+    ex:hasSkill "SPARQL" ;
+    ex:contributesTo ex:MLPopulationProject .
+
+### ----------------------------
+### Places
+### ----------------------------
+
+ex:Chittagong a dbo:Place ;
+    rdfs:label "Chattogram"@en ;
+    rdfs:comment "A major coastal city in southeastern Bangladesh."@en .
+
+ex:Dhaka a dbo:Place ;
+    rdfs:label "Dhaka"@en ;
+    rdfs:comment "The capital city of Bangladesh."@en .
+
+### ----------------------------
+### Organizations
+### ----------------------------
+
+ex:DataPublisher1 a foaf:Organization ;
+    foaf:name "Open Data Lab" ;
+    foaf:homepage <http://opendatalab.org> .
+
+### ----------------------------
+### Publications
+### ----------------------------
+
+ex:Paper1 a ex:Publication ;
+    rdfs:label "Semantic Web for Population Data"@en ;
+    rdfs:comment "A research paper on using RDF for population datasets."@en ;
+    foaf:homepage <http://example.org/publications/paper1> .
+
+### ----------------------------
+### Projects
+### ----------------------------
+
+ex:DataAnalysisProject1 a ex:Project ;
+    rdfs:label "Bangladesh Population Analysis"@en ;
+    rdfs:comment "A project analyzing population trends in Bangladesh."@en ;
+    foaf:homepage <http://example.org/projects/data-analysis> .
+
+ex:MLPopulationProject a ex:Project ;
+    rdfs:label "ML-Based Population Prediction"@en ;
+    rdfs:comment "A project using machine learning to predict population growth."@en ;
+    foaf:homepage <http://example.org/projects/ml-population> .
+
+### ----------------------------
+### DataCube Structure Definition
+### ----------------------------
+
+ex:PopulationStructure a qb:DataStructureDefinition ;
+    rdfs:comment "Structure for population datasets."@en ;
+    qb:component [
+        qb:dimension ex:refArea ;
+    ] ;
+    qb:component [
+        qb:dimension ex:refYear ;
+    ] ;
+    qb:component [
+        qb:measure ex:population ;
+    ] .
+
+ex:refArea a rdf:Property ;
+    rdfs:label "Reference Area"@en ;
+    rdfs:comment "The area (e.g., city) to which the observation relates."@en .
+
+ex:refYear a rdf:Property ;
+    rdfs:label "Reference Year"@en ;
+    rdfs:comment "The year for which the data applies."@en ;
+    rdfs:range xsd:gYear .
+
+ex:population a rdf:Property ;
+    rdfs:label "Population"@en ;
+    rdfs:comment "Population count."@en ;
+    rdfs:range xsd:integer .
+
+### ----------------------------
+### Datasets and Observations
+### ----------------------------
+
+ex:BangladeshPopulationData a qb:DataSet ;
+    rdfs:label "Population Dataset of Bangladesh"@en ;
+    qb:structure ex:PopulationStructure ;
+    qb:publisher ex:DataPublisher1 .
+
+ex:obs1 a qb:Observation ;
+    qb:dataSet ex:BangladeshPopulationData ;
+    ex:refArea ex:Chittagong ;
+    ex:refYear "2020"^^xsd:gYear ;
+    ex:population 2500000 .
+
+ex:obs2 a qb:Observation ;
+    qb:dataSet ex:BangladeshPopulationData ;
+    ex:refArea ex:Dhaka ;
+    ex:refYear "2020"^^xsd:gYear ;
+    ex:population 8900000 .
+
+ex:obs3 a qb:Observation ;
+    qb:dataSet ex:BangladeshPopulationData ;
+    ex:refArea ex:Chittagong ;
+    ex:refYear "2023"^^xsd:gYear ;
+    ex:population 2700000 .
+
+ex:obs4 a qb:Observation ;
+    qb:dataSet ex:BangladeshPopulationData ;
+    ex:refArea ex:Dhaka ;
+    ex:refYear "2023"^^xsd:gYear ;
+    ex:population 9200000 .
